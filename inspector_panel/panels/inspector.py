@@ -21,7 +21,6 @@ class DebugRecord(object):
 
 def log_record(record):
     collector.collect(record)
-    pass
 
 
 def debug_class(the_class, record):
@@ -77,7 +76,7 @@ def debug(value, console=True):
 class InspectorPanel(Panel):
 
     name = 'InspectorPanel'
-    template = 'inspector_panel/panels/inspector.html'
+    template = 'inspector.html'
     has_content = True
 
     def __init__(self, *args, **kwargs):
