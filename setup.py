@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
     name="inspector_panel",
-    version="0.0.1",
+    version="0.0.2",
     author="Santiago Basulto",
     author_email="santiago.basulto@gmail.com",
     description=("A django-debug-toolbar panel to get more information about "
