@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.template.loader import render_to_string
-from debug_toolbar.panels import DebugPanel
+from debug_toolbar.panels import Panel
+from debug_toolbar.utils import ThreadCollector
 from console_utils import console_debug
 import inspect
 try:
@@ -8,36 +9,19 @@ try:
 except ImportError:
     threading = None
 
-CONSTANT_ID = 1
-RECORDS = {}
+class DebugCollector(ThreadCollector):
+    def collect(self, item, thread=None):
+        super(DebugCollector, self).collect(item, thread)
 
+collector = DebugCollector()
 
 class DebugRecord(object):
     def __init__(self, *args, **kwargs):
-        pass
-
-
-def clear_record_for_current_thread():
-    if threading is None:
-        t_id = CONSTANT_ID
-    else:
-        t_id = threading.currentThread()
-    RECORDS[t_id] = []
-
-
-def get_record_for_current_thread():
-    if threading is None:
-        t_id = CONSTANT_ID
-    else:
-        t_id = threading.currentThread()
-    if t_id not in RECORDS:
-        RECORDS[t_id] = []
-    return RECORDS[t_id]
-
+        pass 
 
 def log_record(record):
-    slot = get_record_for_current_thread()
-    slot.append(record)
+    collector.collect(record)
+    pass
 
 
 def debug_class(the_class, record):
@@ -90,21 +74,22 @@ def debug(value, console=True):
         console_debug(record)
 
 
-class InspectorPanel(DebugPanel):
+class InspectorPanel(Panel):
 
     name = 'InspectorPanel'
-    template = 'inspector.html'
+    template = 'inspector_panel/panels/inspector.html'
     has_content = True
 
     def __init__(self, *args, **kwargs):
         super(InspectorPanel, self).__init__(*args, **kwargs)
-        clear_record_for_current_thread()
+        self._records = {}
 
+    @property
     def nav_title(self):
         return 'Inspector Panel'
 
     def nav_subtitle(self):
-        records = get_record_for_current_thread()
+        records = self._records[threading.currentThread()]
         return "%s values to debug" % len(records)
 
     def title(self):
@@ -113,14 +98,12 @@ class InspectorPanel(DebugPanel):
     def url(self):
         return ''
 
-    def content(self):
+    def process_request(self, request):
+        collector.clear_collection()
 
-        context = self.context.copy()
 
-        records = get_record_for_current_thread()
-        context.update({
-            'records': records,
-            'count': len(records)
-        })
-
-        return render_to_string(self.template, context)
+    def process_response(self, request, response):
+        records = collector.get_collection()
+        self._records[threading.currentThread()] = records
+        collector.clear_collection()
+        self.record_stats({'records': records, 'count':len(records)})
