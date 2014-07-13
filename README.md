@@ -21,13 +21,11 @@ Have you found yourself doing this all the time?:
 
 Well, I used to do that a lot. So, I decided to write this simple panel.
 
-The idea is to use just one function `debug` and get lots of information. Here's an example of a [real Django App](https://github.com/santiagobasulto/guide-to-testing-in-django):
-
-    from inspector_panel.panels.inspector import debug
+The idea is to use just one function `dj_debug` and get lots of information. Here's an example of a [real Django App](https://github.com/santiagobasulto/guide-to-testing-in-django):
 
     def index(request):
         latest_poll_list = Poll.published.all().order_by('-pub_date')[:5]
-        debug(latest_poll_list)  # Just add this line
+        dj_debug(latest_poll_list)  # Just add this line
         return render_to_response('polls/index.html', {'latest_poll_list': latest_poll_list})
 
 You get first some information in the Debug Toolbar:
@@ -58,9 +56,18 @@ Add `inspector_panel` to your `INSTALLED_APPS`
         'inspector_panel'
     )
 
+Add this setting variable:
+    
+    DEBUG_INSPECTOR_PANEL_EXTEND_BUILTINS = True
+
+If `DEBUG_INSPECTOR_PANEL_EXTEND_BUILTINS` is set to True, debug inspector panel will add a builtin function called `dj_debug` that you can use without importing anything.
+If you set this to False, you have to import the `debug` function whenever you want to use it as follows:
+
+    from inspector_panel import debug
+
 
 ### Use
-
+#### By Importing It
 Just import the debug function:
 
     from inspector_panel import debug
@@ -79,6 +86,20 @@ and use it to debug whatever you want:
 Optionally you can disable console logging:
 
     debug([1, 2, 3], console=False)
+
+#### Without Importing
+After you set `DEBUG_INSPECTOR_PANEL_EXTEND_BUILTINS` to `True`, you no longer need to import a function
+to use `dj_debug`. You can simply use it whenver you want:
+
+    dj_debug([1, 2, 3])
+    dj_debug(Poll)
+    dj_debug(Poll.objects.all())
+
+    def my_function():
+        print "Hello World"
+
+    dj_debug(my_function)
+
 
 ### Important!
 
