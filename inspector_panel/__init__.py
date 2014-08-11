@@ -3,7 +3,9 @@ from django.conf import settings
 __all__ = ["panels"]
 from inspector_panel.panels.inspector import debug
 
-if settings.DEBUG_INSPECTOR_PANEL_EXTEND_BUILTINS:
+DEBUG_INSPECTOR_PANEL_EXTEND_BUILTINS = getattr(settings, 'DEBUG_INSPECTOR_PANEL_EXTEND_BUILTINS', False)
+
+if DEBUG_INSPECTOR_PANEL_EXTEND_BUILTINS:
     # ensure we're not overriding an existing builtin
     try:
         __builtins__['dj_debug']
